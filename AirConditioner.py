@@ -7,6 +7,7 @@ import subprocess
 import threading
 import time
 from tkinter import *
+from tkinter.messagebox import showerror
 from tkinter.ttk import *
 
 from selenium.common.exceptions import (UnexpectedAlertPresentException,
@@ -53,9 +54,10 @@ class Browser:
 			print("login failed")
 			return None
 
-
+		turnOnSucceeded = False
 		if img_src.find("this_1") == -1: 
 			self.browser.find_element_by_id("OverImage_OnOff").click()
+			turnOnSucceeded = True
 			print("turning on the AC.", end=' ', flush=True)
 		else:
 			print("The AC is still running.", end=' ', flush=True)
@@ -63,7 +65,7 @@ class Browser:
 
 		self.browser.get("http://203.249.68.52")
 		self.browser.find_element_by_id("btnLogout").click()
-		return True
+		return turnOnSucceeded
 	
 	def turn_off(self, identification, password):
 		self.browser.get("http://203.249.68.52")
@@ -86,15 +88,22 @@ class Redirector:
 		return
 	def write(self, s):
 		self.obj.insert(END, s)
-		self.obj.update_idletasks()
+		self.obj.see("end")
+		#self.obj.update_idletasks()
 		return
 	def flush(self):
 		pass
 '''
 main function start
 '''
-MARGIN=5
 
+try:
+	browser = Browser()
+except:
+	showerror("Critical Error", "크롬이 설치되어있는지, 교내 ip에 접속했는지 확인하세요")
+	exit(1)
+
+MARGIN=5
 root = Tk(className="web remote")
 root.resizable(width=False, height=False)
 
@@ -116,7 +125,6 @@ pwText = StringVar()
 pwTextBox = Entry(leftFrame, textvariable=pwText)
 pwTextBox.grid(row=1, column=1, padx=MARGIN, pady=MARGIN)
 
-browser = Browser()
 
 
 def turn_on_closure(): 
@@ -129,14 +137,17 @@ def turn_on_closure():
 
 startButton = Button(leftFrame, text="start", command=turn_on_closure)
 startButton.grid(columnspan=2, padx=MARGIN, pady=MARGIN)
+pwTextBox.bind("<Return>", lambda event: turn_on_closure())
+startButton.bind("<Return>", lambda event: turn_on_closure())
 
-log = Text(root, width=30, height=10)
+log = Text(root, width=50, height=10)
 log.grid(row=0, column=2, padx=MARGIN, pady=MARGIN)
 sys.stdout = Redirector(log)
 
 if len(sys.argv) == 3:
 	idText.set(sys.argv[1])
 	pwText.set(sys.argv[2])
+	turn_on_closure()
 
 
 root.mainloop()
