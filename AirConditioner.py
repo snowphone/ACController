@@ -14,7 +14,7 @@ from selenium.common.exceptions import (UnexpectedAlertPresentException,
                                         WebDriverException)
 from selenium.webdriver import Chrome, ChromeOptions
 
-from driver import HiddenChromeWebDriver
+from myDriver import HiddenChromeWebDriver
 
 
 def isDaytime():
@@ -50,9 +50,16 @@ class Browser:
 		try:
 			img_src=self.browser.find_element_by_id("Image_OnOff").get_attribute("src")
 		except UnexpectedAlertPresentException:
-			#login failed
+			#-----------login failed--------------
 			print("login failed")
 			return None
+
+
+		coldWarmCheck=self.browser.find_element_by_id("Image_1").get_attribute("src")
+		if coldWarmCheck.find("nn_0") != -1:
+			root.title("web remote - 난방")
+		else:
+			root.title("web remote - 냉방")
 
 		turnOnSucceeded = False
 		if img_src.find("this_1") == -1: 
@@ -151,5 +158,9 @@ if len(sys.argv) == 3:
 
 
 root.mainloop()
-browser.turn_off(idText.get(), pwText.get())
-browser.browser.quit()
+try:
+	browser.turn_off(idText.get(), pwText.get())
+except:
+	pass
+finally:
+	browser.browser.quit()
