@@ -138,7 +138,10 @@ def turn_on_closure():
 	ret = browser.turn_on_once(idText.get(), pwText.get())
 	if ret is None:
 		return
-	sleeptimerInMin = 3
+	elif ret:
+		sleeptimerInMin = 120
+	else:
+		sleeptimerInMin = 3
 	print("sleep for {} minutes".format(sleeptimerInMin))
 	root.after(int(sleeptimerInMin * 60 * 1000), turn_on_closure)
 
