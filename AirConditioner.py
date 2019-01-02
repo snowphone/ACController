@@ -5,7 +5,7 @@ import os
 import re
 import subprocess
 import threading
-import time
+import datetime
 from tkinter import *
 from tkinter.messagebox import showerror
 from tkinter.ttk import *
@@ -18,10 +18,8 @@ from myDriver import HiddenChromeWebDriver
 
 
 def isDaytime():
-	timestr = time.ctime()
-	pattern = re.compile(r"(?<=\w{3} \w{3} \d{2} )\d{2}")
-	hours = int(pattern.search(timestr).group())
-	if hours in range(8, 23):
+	hour = datetime.datetime.now().hour
+	if hour in range(8, 23):
 		return True
 	else:
 		return False
