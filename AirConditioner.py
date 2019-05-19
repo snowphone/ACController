@@ -1,20 +1,27 @@
-import asyncio
-import ctypes
-import multiprocessing
-import os
-import re
-import subprocess
-import threading
-import datetime
-from tkinter import *
-from tkinter.messagebox import showerror
-from tkinter.ttk import *
+try:
+	import asyncio
+	import ctypes
+	import datetime
+	import logging
+	import os
+	import re
+	import subprocess
+	import threading
+	from tkinter import *
+	from tkinter.messagebox import showerror
+	from tkinter.ttk import *
 
-from selenium.common.exceptions import (UnexpectedAlertPresentException,
-                                        WebDriverException)
-from selenium.webdriver import Chrome, ChromeOptions
+	from myDriver import HiddenChromeWebDriver
+	from selenium.common.exceptions import (UnexpectedAlertPresentException,
+											WebDriverException)
+	from selenium.webdriver import Chrome, ChromeOptions
+except Exception as e:
+	log = logging.getLogger(__name__)
+	fh = logging.FileHandler("error.log")
+	log.addHandler(fh)
+	log.exception(e)
+	exit(1)
 
-from myDriver import HiddenChromeWebDriver
 
 
 def isDaytime():
@@ -123,74 +130,78 @@ class Redirector:
 		return
 	def flush(self):
 		pass
+
 '''
 main function start
 '''
-
 try:
 	browser = Browser()
-except:
-	showerror("Critical Error", "크롬이 설치되어있는지, 교내 ip에 접속했는지 확인하세요")
-	exit(1)
 
-MARGIN=5
-root = Tk(className="web remote")
-root.resizable(width=False, height=False)
+	MARGIN=5
+	root = Tk(className="web remote")
+	root.resizable(width=False, height=False)
 
 
-leftFrame = Frame(root)
-leftFrame.grid(row=0)
+	leftFrame = Frame(root)
+	leftFrame.grid(row=0)
 
-idLabel = Label(leftFrame, text="ID")
-idLabel.grid(row=0, column=0, padx=MARGIN, pady=MARGIN)
+	idLabel = Label(leftFrame, text="ID")
+	idLabel.grid(row=0, column=0, padx=MARGIN, pady=MARGIN)
 
-idText = StringVar()
-idTextBox = Entry(leftFrame, textvariable=idText)
-idTextBox.grid(row=0, column=1, padx=MARGIN, pady=MARGIN)
+	idText = StringVar()
+	idTextBox = Entry(leftFrame, textvariable=idText)
+	idTextBox.grid(row=0, column=1, padx=MARGIN, pady=MARGIN)
 
-pwLabel = Label(leftFrame, text="Password")
-pwLabel.grid(row=1, column=0, padx=MARGIN, pady=MARGIN)
+	pwLabel = Label(leftFrame, text="Password")
+	pwLabel.grid(row=1, column=0, padx=MARGIN, pady=MARGIN)
 
-pwText = StringVar()
-pwTextBox = Entry(leftFrame, textvariable=pwText)
-pwTextBox.grid(row=1, column=1, padx=MARGIN, pady=MARGIN)
+	pwText = StringVar()
+	pwTextBox = Entry(leftFrame, textvariable=pwText)
+	pwTextBox.grid(row=1, column=1, padx=MARGIN, pady=MARGIN)
 
 
 
-def turn_on_closure(): 
-	if not isDaytime():
-		print("It's night.", end=' ')
-		sleeptimerInMin = 120
-	else:
-		ret = browser.turn_on_once(idText.get(), pwText.get())
-		if ret is None:
-			return
-		elif ret:
+	def turn_on_closure(): 
+		if not isDaytime():
+			print("It's night.")
 			sleeptimerInMin = 120
 		else:
-			sleeptimerInMin = 3
-		print("It'll check up in {} minutes".format(sleeptimerInMin))
-	root.after(int(sleeptimerInMin * 60 * 1000), turn_on_closure)
+			ret = browser.turn_on_once(idText.get(), pwText.get())
+			if ret is None:
+				return
+			elif ret:
+				sleeptimerInMin = 120
+			else:
+				sleeptimerInMin = 3
+			print("It'll check up in {} minutes".format(sleeptimerInMin))
+		root.after(int(sleeptimerInMin * 60 * 1000), turn_on_closure)
 
-startButton = Button(leftFrame, text="start", command=turn_on_closure)
-startButton.grid(columnspan=2, padx=MARGIN, pady=MARGIN)
-pwTextBox.bind("<Return>", lambda event: turn_on_closure())
-startButton.bind("<Return>", lambda event: turn_on_closure())
+	startButton = Button(leftFrame, text="start", command=turn_on_closure)
+	startButton.grid(columnspan=2, padx=MARGIN, pady=MARGIN)
+	pwTextBox.bind("<Return>", lambda event: turn_on_closure())
+	startButton.bind("<Return>", lambda event: turn_on_closure())
 
-log = Text(root, width=60, height=10)
-log.grid(row=0, column=2, padx=MARGIN, pady=MARGIN)
-sys.stdout = Redirector(log)
+	log = Text(root, width=60, height=10)
+	log.grid(row=0, column=2, padx=MARGIN, pady=MARGIN)
+	sys.stdout = Redirector(log)
 
-if len(sys.argv) == 3:
-	idText.set(sys.argv[1])
-	pwText.set(sys.argv[2])
-	turn_on_closure()
+	if len(sys.argv) == 3:
+		idText.set(sys.argv[1])
+		pwText.set(sys.argv[2])
+		turn_on_closure()
 
 
-root.mainloop()
-try:
-	browser.turn_off()
-except:
-	pass
-finally:
-	browser.browser.quit()
+	root.mainloop()
+	try:
+		browser.turn_off()
+	except:
+		pass
+	finally:
+		browser.browser.quit()
+except Exception as e:
+	log = logging.getLogger(__name__)
+	fh = logging.FileHandler("error.log")
+	log.addHandler(fh)
+	log.exception(e)
+	exit(1)
+
