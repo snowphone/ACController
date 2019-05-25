@@ -1,66 +1,80 @@
 import argparse
 import os
+import datetime
 import time
 import re
 
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 
+def isDaytime():
+	hour = datetime.datetime.now().hour
+	return True if hour in range(8, 23) else False
 
-parser = argparse.ArgumentParser()
-parser.add_argument("ID", help="ID of GHP WEB REMOCON")
-parser.add_argument("password", help="password of GHP WEB REMOCON")
+def turn_up(browser):
+	increase_button=browser.find_element_by_id("OverImage_2")
+	while True:
+		try:
+			increase_button.click()
+		except UnexpectedAlertPresentException:
+			browser.switch_to.alert.accept()
+			return
 
-args = parser.parse_args()
+def turn_down(browser):
+	decrease_button=browser.find_element_by_id("OverImage_3")
+	while True:
+		try:
+			decrease_button.click()
+		except UnexpectedAlertPresentException:
+			browser.switch_to.alert.accept()
+			return
 
-
-def isDay():
-	timestr = time.ctime()
-	pattern = re.compile(r"(?<=\w{3} \w{3} \d{2} )\d{2}")
-	hours = int(pattern.search(timestr).group())
-	if hours in range(8, 23):
+def isSummer(browser):
+	coldWarmCheck=browser.find_element_by_id("Image_1").get_attribute("src")
+	if coldWarmCheck.find("nn_0") != -1:
 		return True
 	else:
 		return False
 
-
-
-
-while True:
-	
-	'''
-	opt = webdriver.ChromeOptions()
-	opt.headless = True
-	#opt.binary_location = "./GoogleChromePortable64/GoogleChromePortable.exe"
-	browser = webdriver.Chrome(options=opt, executable_path="./chromedriver.exe")
-	'''
-	opt = webdriver.FirefoxOptions()
-	opt.headless = True
-	browser = webdriver.Firefox(options=opt, executable_path="./geckodriver.exe")
-
+def login(browser, ID, pw):
 	browser.get("http://203.249.68.52")
 	browser.find_element_by_id("txtId").send_keys(args.ID)
-
 	browser.find_element_by_id("txtPwd").send_keys(args.password)
 	browser.find_element_by_id("btnLogin").click()
 
-	img_src=browser.find_element_by_id("Image_OnOff").get_attribute("src")
+	return browser
 
-	#print (img_src)
-	#print (img_src.find("this_1"))
 
-	if img_src.find("this_1") == -1: 
-		if isDay():
-			print(time.ctime(), "AC is off. Turn on the AC")
-			browser.find_element_by_id("OverImage_OnOff").click()
-			browser.find_element_by_id("btnSubmit").click()
-			#browser.switch_to_alert().accept()
-			browser.quit()
-			time.sleep(7000)
+
+def main():
+	opt = webdriver.ChromeOptions()
+	opt.headless = True
+	browser = webdriver.Chrome(options=opt, executable_path="./chromedriver.exe")
+
+	while True:
+		login(browser, args.ID, args.password)
+
+		img_src=browser.find_element_by_id("Image_OnOff").get_attribute("src")
+
+		if img_src.find("this_1") == -1: 
+			if isDaytime():
+				if isSummer(browser):
+					turn_down(browser)
+				else:
+					turn_up(browser)
+				browser.find_element_by_id("OverImage_OnOff").click()
+				browser.find_element_by_id("btnSubmit").click()
+				browser.quit()
+				time.sleep(7200)	# 2 hours
+			else:
+				time.sleep(3600 * 8.5)
 		else:
-			print("It's night")
-			time.sleep(3600)
-	else:
-		print(time.ctime(), "AC is on, sleep for 3 minutes")
-		browser.quit()
-		time.sleep(180)
+			browser.quit()
+			time.sleep(180)
+
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser()
+	parser.add_argument("ID", help="ID of GHP WEB REMOCON")
+	parser.add_argument("password", help="password of GHP WEB REMOCON")
+	args = parser.parse_args()
+	main()
