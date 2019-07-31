@@ -48,19 +48,22 @@ class Browser:
 	def turn_up(self):
 		increase_button=self.browser.find_element_by_id("OverImage_2")
 		while True:
+			increase_button.click()
 			try:
-				increase_button.click()
-			except UnexpectedAlertPresentException:
 				self.browser.switch_to.alert.accept()
 				return
+			except:
+				continue
 
 	def turn_down(self):
 		reduce_button=self.browser.find_element_by_id("OverImage_3")
 		while True:
+			reduce_button.click()
 			try:
-				reduce_button.click()
-			except UnexpectedAlertPresentException:
+				self.browser.switch_to.alert.accept()
 				return
+			except:
+				continue
 
 	def login(self):
 		url = "http://203.249.68.52"
